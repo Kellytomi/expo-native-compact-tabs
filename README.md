@@ -13,6 +13,14 @@ On iOS 26, this gives you Apple's actual Liquid Glass and water-drop selection
 motion while allowing a compact state that removes labels but keeps every icon.
 Earlier iOS versions receive the native UIKit appearance for that OS.
 
+## Demo
+
+![Native Liquid Glass tab selection and compact-on-scroll behavior](https://raw.githubusercontent.com/Kellytomi/expo-native-compact-tabs/main/media/demo.gif)
+
+The demo shows the native selection capsule moving between tabs, animated tab
+icons, and the bar compacting on downward scroll while keeping every icon
+visible. [Watch the higher-quality MP4](https://github.com/Kellytomi/expo-native-compact-tabs/raw/refs/heads/main/media/demo.mp4).
+
 ## Requirements
 
 - Expo SDK 57 or newer
