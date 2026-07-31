@@ -1,0 +1,60 @@
+{
+  "name": "expo-native-compact-tabs",
+  "version": "0.1.0",
+  "description": "A real UIKit tab bar for Expo that keeps every tab visible when compact.",
+  "main": "src/index.tsx",
+  "types": "src/index.tsx",
+  "exports": {
+    ".": {
+      "types": "./src/index.tsx",
+      "default": "./src/index.tsx"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src",
+    "ios/*.swift",
+    "ios/*.podspec",
+    "expo-module.config.json",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "keywords": [
+    "expo",
+    "react-native",
+    "ios",
+    "uitabbar",
+    "liquid-glass",
+    "tab-bar"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kellytomi/expo-native-compact-tabs.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Kellytomi/expo-native-compact-tabs/issues"
+  },
+  "homepage": "https://github.com/Kellytomi/expo-native-compact-tabs#readme",
+  "author": "Etoma-etoto Odi",
+  "license": "MIT",
+  "peerDependencies": {
+    "expo": ">=57",
+    "react": ">=19",
+    "react-native": ">=0.86",
+    "react-native-reanimated": ">=4"
+  },
+  "devDependencies": {
+    "@types/react": "~19.2.2",
+    "expo": "~57.0.8",
+    "react": "19.2.3",
+    "react-native": "0.86.0",
+    "react-native-reanimated": "4.5.0",
+    "typescript": "~6.0.3"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "prepack": "npm run typecheck"
+  }
+}
