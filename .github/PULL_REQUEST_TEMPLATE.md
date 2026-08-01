@@ -1,20 +1,21 @@
-## Summary
+## What changed?
 
-<!-- What changed, and why? -->
+<!-- Summarize the user-facing behavior and why it changed. -->
+
+## Platforms tested
+
+- [ ] iOS 26+ Liquid Glass
+- [ ] iOS 16.4–18.x fallback
+- [ ] Android
+- [ ] Not applicable
 
 ## Validation
 
-<!-- List the commands, simulators, and physical devices used. -->
-
 - [ ] `npm run typecheck`
 - [ ] `npm pack --dry-run`
-- [ ] Tested expanded and compact states where applicable
-- [ ] Tested iOS 26+ where native appearance or behavior changed
-- [ ] Tested the iOS 16.4–18.x fallback where applicable
+- [ ] Native build or device/simulator test, if applicable
+- [ ] Documentation/changelog updated when public behavior changed
 
-## Checklist
+## Notes
 
-- [ ] The change is focused and does not include unrelated files.
-- [ ] Public API or behavior changes are documented.
-- [ ] The changelog is updated when the change is user-facing.
-- [ ] No app-specific assets or private information are included.
+<!-- Include screenshots, recordings, migration notes, or known limitations. -->

@@ -73,6 +73,9 @@ npx expo run:ios
 npx expo run:android
 ```
 
+If you are not using Expo's installer, the equivalent npm command is
+`npm i expo-native-compact-tabs react-native-reanimated`.
+
 After adding or upgrading the package, rebuild the native app. A Metro reload
 cannot install Swift code into an existing binary.
 

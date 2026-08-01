@@ -6,7 +6,8 @@ Security fixes are provided for the latest published minor release.
 
 | Version | Supported |
 | --- | --- |
-| 0.1.x | Yes |
+| 0.2.x | Yes |
+| 0.1.x | No |
 | Earlier versions | No |
 
 ## Reporting a vulnerability
@@ -17,7 +18,7 @@ and include:
 
 - A description of the issue and its impact.
 - Steps or a minimal project that reproduces it.
-- Affected package and iOS versions.
+- Affected package, platform, and OS versions.
 - Any suggested mitigation, if known.
 
 You should receive an acknowledgement within seven days. Please allow time to

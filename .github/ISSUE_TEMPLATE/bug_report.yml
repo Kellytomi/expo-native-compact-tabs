@@ -1,5 +1,5 @@
 name: Bug report
-description: Report a reproducible problem with the package
+description: Report a reproducible problem with the native compact tab bar
 title: "[Bug]: "
 labels:
   - bug
@@ -30,7 +30,8 @@ body:
       options:
         - iOS 26+ Liquid Glass
         - iOS 16.4–18.x solid fallback
-        - Both
+        - Android
+        - Multiple platforms
         - Not sure
     validations:
       required: true
@@ -38,21 +39,21 @@ body:
     id: package-version
     attributes:
       label: Package version
-      placeholder: 0.1.1
+      placeholder: 0.2.0
     validations:
       required: true
   - type: input
     id: expo-version
     attributes:
       label: Expo and React Native versions
-      placeholder: Expo 57, React Native 0.86
+      placeholder: Expo SDK 57, React Native 0.86
     validations:
       required: true
   - type: input
     id: device
     attributes:
-      label: iOS, Xcode, and device versions
-      placeholder: iOS 26.2, Xcode 26, iPhone Air simulator
+      label: OS, device, and build details
+      placeholder: Android 16, Pixel 9 Pro XL, development build
     validations:
       required: true
   - type: textarea

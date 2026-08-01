@@ -14,7 +14,7 @@ For visual or behavioral bugs, include:
 - Expo, React Native, package, Xcode, and iOS versions.
 - Simulator or physical-device model.
 - Whether the issue occurs on iOS 26+ Liquid Glass, the iOS 16.4–18.x solid
-  fallback, or both.
+  fallback, Android, or more than one platform.
 - A minimal reproduction and, when useful, a screenshot or recording.
 
 ## Development
@@ -22,6 +22,7 @@ For visual or behavioral bugs, include:
 ```sh
 npm install
 npm run typecheck
+npm pack --dry-run
 ```
 
 This is a native Expo module. Swift changes require a development build; Expo
@@ -35,6 +36,10 @@ When testing native changes, verify:
 - Scroll-to-top behavior and destination-tab scroll reset.
 - iOS 26+ and the iOS 16.4–18.x fallback when the change affects layout or
   appearance.
+- Android expanded and compact states, safe-area placement, drag selection,
+  haptics, and accessibility when the change affects Android behavior.
+- The package tarball contains the intended native source and excludes build
+  output or demo media.
 
 ## Pull requests
 
@@ -42,6 +47,6 @@ When testing native changes, verify:
 2. Keep the change small and explain the user-facing reason.
 3. Add or update documentation when behavior or the public API changes.
 4. Run `npm run typecheck` and `npm pack --dry-run`.
-5. Complete the pull-request checklist.
+5. Complete the pull-request checklist, including the platforms tested.
 
 By participating, you agree to follow the [Code of Conduct](CODE_OF_CONDUCT.md).

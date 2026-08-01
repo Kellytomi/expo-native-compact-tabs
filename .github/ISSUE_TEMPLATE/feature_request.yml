@@ -1,5 +1,5 @@
 name: Feature request
-description: Propose an improvement to the package
+description: Propose an improvement to the native compact tab bar
 title: "[Feature]: "
 labels:
   - enhancement
@@ -7,7 +7,7 @@ body:
   - type: textarea
     id: problem
     attributes:
-      label: Problem
+      label: Problem or use case
       description: What limitation or user need would this address?
     validations:
       required: true
@@ -15,7 +15,7 @@ body:
     id: proposal
     attributes:
       label: Proposed solution
-      description: Explain the desired API or behavior and how it should work across supported iOS versions.
+      description: Explain the desired API or behavior and how it should work across supported platforms.
     validations:
       required: true
   - type: textarea
@@ -23,12 +23,21 @@ body:
     attributes:
       label: Alternatives considered
       description: Describe any workarounds or other approaches you considered.
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - iOS 26+ Liquid Glass
+        - iOS 16.4–18.x fallback
+        - Android
+        - Cross-platform
+    validations:
+      required: true
   - type: checkboxes
     id: scope
     attributes:
-      label: Scope
+      label: Checklist
       options:
-        - label: I understand that Android support is not currently implemented.
-          required: true
         - label: I searched existing issues and discussions for this proposal.
           required: true
