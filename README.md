@@ -79,6 +79,28 @@ If you are not using Expo's installer, the equivalent npm command is
 After adding or upgrading the package, rebuild the native app. A Metro reload
 cannot install Swift code into an existing binary.
 
+## Setup prompt for coding agents
+
+If you are asking a coding agent to add this package to an existing Expo Router
+app, give it this task (and ask it to inspect the repository before editing):
+
+> Install `expo-native-compact-tabs` with `npx expo install` and integrate it
+> into the existing Expo Router tabs. Keep the router as the navigator, hide
+> its built-in tab bar, and render `NativeCompactTabBar` as the visible native
+> bar. Create one module-scope `createCompactTabBarController()` and share it
+> between the tab layout and every tab screen. Use stable keys with
+> `useCollapsingScroll(key)`, route `onTabSelected` through the existing tab
+> routes, and call `scrollToTop(key, animated)` for Android destination resets
+> and active-tab reselects. Reuse the app's existing icons; do not replace the
+> native component with a JavaScript-only tab bar. Rebuild with `npx expo
+> run:ios` or `npx expo run:android`, then verify expanded/compact scrolling,
+> reselect-to-top, drag selection, and safe-area placement on every supported
+> platform.
+
+The agent should adapt the example below to the app's existing route names and
+icon assets rather than inventing a second navigator. Native modules do not run
+in Expo Go, and an iOS or Android rebuild is required after installation.
+
 ## Expo Router example
 
 Keep Expo Router's native tabs as the navigator, hide its system bar, and place
