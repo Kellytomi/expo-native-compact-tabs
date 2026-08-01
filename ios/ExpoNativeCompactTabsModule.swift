@@ -54,6 +54,10 @@ public final class ExpoNativeCompactTabsModule: Module {
       Prop("animationFrameDuration") { (view: ExpoNativeCompactTabsView, duration: Double?) in
         view.animationFrameDuration = duration ?? 0.034
       }
+
+      Prop("selectionDragEnabled") { (view: ExpoNativeCompactTabsView, enabled: Bool?) in
+        view.selectionDragEnabled = enabled ?? true
+      }
     }
   }
 }

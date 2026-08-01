@@ -32,6 +32,11 @@ export type NativeCompactTabBarProps = ViewProps & {
   expandedHeight?: number;
   compactHeight?: number;
   animationFrameDuration?: number;
+  /**
+   * Enables press-and-drag selection on Android and the pre-iOS 26 fallback.
+   * iOS 26 continues to use UIKit's native Liquid Glass interaction.
+   */
+  selectionDragEnabled?: boolean;
   onTabSelected?: (event: NativeCompactTabBarSelectionEvent) => void;
 };
 
@@ -64,7 +69,8 @@ function uriFor(source: ImageSourcePropType, itemKey: string): string {
 }
 
 /**
- * A real, standalone UIKit `UITabBar` whose compact state retains every icon.
+ * A native floating tab bar whose compact state retains every icon.
+ * iOS uses a standalone `UITabBar`; Android uses a native Kotlin view.
  * Navigation remains controlled by the caller (for example, Expo Router).
  */
 export function NativeCompactTabBar({

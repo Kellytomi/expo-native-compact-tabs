@@ -1,7 +1,7 @@
 {
   "name": "expo-native-compact-tabs",
-  "version": "0.1.1",
-  "description": "A real UIKit tab bar for Expo that keeps every tab visible when compact.",
+  "version": "0.2.0",
+  "description": "A native floating tab bar for Expo that keeps every tab visible when compact.",
   "main": "src/index.tsx",
   "types": "src/index.tsx",
   "exports": {
@@ -13,6 +13,7 @@
   },
   "files": [
     "src",
+    "android",
     "ios/*.swift",
     "ios/*.podspec",
     "expo-module.config.json",
@@ -25,6 +26,7 @@
     "expo",
     "react-native",
     "ios",
+    "android",
     "uitabbar",
     "liquid-glass",
     "tab-bar"

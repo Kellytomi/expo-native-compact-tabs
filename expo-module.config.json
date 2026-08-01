@@ -1,6 +1,9 @@
 {
-  "platforms": ["apple"],
+  "platforms": ["apple", "android"],
   "apple": {
     "modules": ["ExpoNativeCompactTabsModule"]
+  },
+  "android": {
+    "modules": ["expo.modules.nativecompacttabs.ExpoNativeCompactTabsModule"]
   }
 }

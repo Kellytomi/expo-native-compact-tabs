@@ -1,6 +1,15 @@
 import ExpoModulesCore
 import UIKit
 
+private final class HorizontalPanGestureDelegate: NSObject, UIGestureRecognizerDelegate {
+  var shouldBegin: ((UIPanGestureRecognizer) -> Bool)?
+
+  func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+    guard let panGesture = gestureRecognizer as? UIPanGestureRecognizer else { return false }
+    return shouldBegin?(panGesture) ?? false
+  }
+}
+
 public final class ExpoNativeCompactTabsView: ExpoView, UITabBarDelegate {
   private static let imageCache = NSCache<NSString, UIImage>()
 
@@ -15,6 +24,12 @@ public final class ExpoNativeCompactTabsView: ExpoView, UITabBarDelegate {
   private var isCompact = false
   private var collapseAnimator: UIViewPropertyAnimator?
   private var legacySelectionAnimator: UIViewPropertyAnimator?
+  private var legacySelectionPanGesture: UIPanGestureRecognizer?
+  private let legacySelectionPanDelegate = HorizontalPanGestureDelegate()
+  private let legacySelectionFeedback = UISelectionFeedbackGenerator()
+  private var legacyDragGrabOffsetX: CGFloat = 0
+  private var legacyPreviewIndex = 0
+  private var isLegacyDragging = false
   private var iconAnimationTimer: Timer?
   private var animatingIndex: Int?
   private var animationFrameIndex = 0
@@ -37,6 +52,16 @@ public final class ExpoNativeCompactTabsView: ExpoView, UITabBarDelegate {
   }
 
   var animationFrameDuration: TimeInterval = 0.034
+
+  var selectionDragEnabled = true {
+    didSet {
+      guard #unavailable(iOS 26.0) else { return }
+      if !selectionDragEnabled, isLegacyDragging {
+        cancelLegacySelectionDrag()
+      }
+      legacySelectionPanGesture?.isEnabled = selectionDragEnabled
+    }
+  }
 
   var tabTintColor: UIColor? {
     didSet { tabBar.tintColor = tabTintColor }
@@ -68,6 +93,7 @@ public final class ExpoNativeCompactTabsView: ExpoView, UITabBarDelegate {
       // had already become compact — it drew ~7pt low, which is exactly the
       // gap between the two surfaces' centres. Parented, it cannot disagree.
       legacyBackgroundView.addSubview(legacySelectionView)
+      configureLegacySelectionGesture()
     }
     addSubview(tabBar)
   }
@@ -97,7 +123,9 @@ public final class ExpoNativeCompactTabsView: ExpoView, UITabBarDelegate {
     guard collapseAnimator?.isRunning != true else { return }
     let frame = resolvedTabFrame(compact: isCompact)
     tabBar.frame = frame
-    updateLegacyLayout(compact: isCompact)
+    if !isLegacyDragging {
+      updateLegacyLayout(compact: isCompact)
+    }
   }
 
   func setItems(_ definitions: [ExpoNativeCompactTabItem]) {
@@ -110,6 +138,9 @@ public final class ExpoNativeCompactTabsView: ExpoView, UITabBarDelegate {
       }
 
     guard changed else { return }
+    if isLegacyDragging {
+      cancelLegacySelectionDrag()
+    }
     stopIconAnimation(resetToRestingFrame: false)
     itemDefinitions = definitions
     animationFrames = Array(repeating: [], count: definitions.count)
@@ -140,6 +171,9 @@ public final class ExpoNativeCompactTabsView: ExpoView, UITabBarDelegate {
 
   func setSelectedIndex(_ index: Int) {
     guard selectedIndex != index else { return }
+    if isLegacyDragging {
+      cancelLegacySelectionDrag()
+    }
     selectedIndex = index
     applySelectedIndex()
     animateLegacySelection(to: index)
@@ -148,6 +182,9 @@ public final class ExpoNativeCompactTabsView: ExpoView, UITabBarDelegate {
 
   func setCompact(_ compact: Bool) {
     guard isCompact != compact else { return }
+    if isLegacyDragging {
+      cancelLegacySelectionDrag()
+    }
     isCompact = compact
 
     collapseAnimator?.stopAnimation(true)
@@ -202,6 +239,150 @@ public final class ExpoNativeCompactTabsView: ExpoView, UITabBarDelegate {
     if !isReselection {
       resetDestinationWhenSelected(index)
     }
+  }
+
+  private func configureLegacySelectionGesture() {
+    guard #unavailable(iOS 26.0) else { return }
+    let panGesture = UIPanGestureRecognizer(
+      target: self,
+      action: #selector(handleLegacySelectionPan(_:))
+    )
+    legacySelectionPanDelegate.shouldBegin = { [weak self] panGesture in
+      self?.shouldBeginLegacySelectionPan(panGesture) ?? false
+    }
+    panGesture.delegate = legacySelectionPanDelegate
+    panGesture.cancelsTouchesInView = true
+    panGesture.maximumNumberOfTouches = 1
+    panGesture.isEnabled = selectionDragEnabled
+    tabBar.addGestureRecognizer(panGesture)
+    legacySelectionPanGesture = panGesture
+  }
+
+  private func shouldBeginLegacySelectionPan(_ panGesture: UIPanGestureRecognizer) -> Bool {
+    guard #unavailable(iOS 26.0), selectionDragEnabled,
+      !(tabBar.items ?? []).isEmpty
+    else { return false }
+
+    let velocity = panGesture.velocity(in: tabBar)
+    if abs(velocity.x) < 0.01, abs(velocity.y) < 0.01 {
+      return true
+    }
+    return abs(velocity.x) > abs(velocity.y)
+  }
+
+  @objc private func handleLegacySelectionPan(_ panGesture: UIPanGestureRecognizer) {
+    guard #unavailable(iOS 26.0), selectionDragEnabled else { return }
+    let location = panGesture.location(in: legacyBackgroundView)
+    let velocity = panGesture.velocity(in: legacyBackgroundView)
+
+    switch panGesture.state {
+    case .began:
+      beginLegacySelectionDrag(at: location)
+      updateLegacySelectionDrag(at: location, velocityX: velocity.x)
+    case .changed:
+      updateLegacySelectionDrag(at: location, velocityX: velocity.x)
+    case .ended:
+      finishLegacySelectionDrag(velocityX: velocity.x)
+    case .cancelled, .failed:
+      cancelLegacySelectionDrag()
+    default:
+      break
+    }
+  }
+
+  private func beginLegacySelectionDrag(at location: CGPoint) {
+    guard #unavailable(iOS 26.0), !(tabBar.items ?? []).isEmpty else { return }
+
+    let visibleFrame = legacySelectionView.layer.presentation()?.frame
+      ?? legacySelectionView.frame
+    legacySelectionAnimator?.stopAnimation(true)
+    legacySelectionAnimator = nil
+    legacySelectionView.layer.removeAllAnimations()
+    legacySelectionView.frame = visibleFrame
+
+    let forgivingHitFrame = visibleFrame.insetBy(dx: -12, dy: -12)
+    legacyDragGrabOffsetX = forgivingHitFrame.contains(location)
+      ? location.x - visibleFrame.midX
+      : 0
+    legacyPreviewIndex = selectedIndex
+    isLegacyDragging = true
+    legacySelectionFeedback.prepare()
+  }
+
+  private func updateLegacySelectionDrag(at location: CGPoint, velocityX: CGFloat) {
+    guard #unavailable(iOS 26.0), isLegacyDragging,
+      let items = tabBar.items, !items.isEmpty,
+      legacyBackgroundView.bounds.width > 0
+    else { return }
+
+    let itemWidth = legacyBackgroundView.bounds.width / CGFloat(items.count)
+    let baseWidth = max(itemWidth - 8, 0)
+    let horizontalInset: CGFloat = 4
+    let stretch = min(abs(velocityX) * 0.006, itemWidth * 0.14)
+    let directionalShift = min(abs(velocityX) * 0.003, itemWidth * 0.08)
+    let direction: CGFloat = velocityX == 0 ? 0 : (velocityX > 0 ? 1 : -1)
+    let halfWidth = baseWidth / 2 + stretch
+    let minimumCenter = horizontalInset + halfWidth
+    let maximumCenter = legacyBackgroundView.bounds.width - horizontalInset - halfWidth
+    let proposedCenter = location.x - legacyDragGrabOffsetX + direction * directionalShift
+    let centerX = min(max(proposedCenter, minimumCenter), maximumCenter)
+    let verticalInset: CGFloat = 4
+    let frame = CGRect(
+      x: centerX - halfWidth,
+      y: verticalInset,
+      width: halfWidth * 2,
+      height: max(legacyBackgroundView.bounds.height - verticalInset * 2, 0)
+    )
+
+    UIView.performWithoutAnimation {
+      self.legacySelectionView.frame = frame
+      self.legacySelectionView.layer.cornerRadius = frame.height / 2
+    }
+
+    let previewIndex = legacyIndex(at: location.x)
+    if previewIndex != legacyPreviewIndex {
+      legacyPreviewIndex = previewIndex
+      tabBar.selectedItem = items[previewIndex]
+      legacySelectionFeedback.selectionChanged()
+      legacySelectionFeedback.prepare()
+    }
+  }
+
+  private func finishLegacySelectionDrag(velocityX: CGFloat) {
+    guard #unavailable(iOS 26.0), isLegacyDragging,
+      let items = tabBar.items, !items.isEmpty
+    else { return }
+
+    let projectedCenter = legacySelectionView.frame.midX + velocityX * 0.08
+    let destinationIndex = legacyIndex(at: projectedCenter)
+    let previousIndex = selectedIndex
+    selectedIndex = destinationIndex
+    legacyPreviewIndex = destinationIndex
+    isLegacyDragging = false
+    tabBar.selectedItem = items[destinationIndex]
+    animateLegacySelection(to: destinationIndex, initialVelocity: velocityX)
+
+    guard destinationIndex != previousIndex else { return }
+    playIconAnimation(at: destinationIndex)
+    onTabSelected(["index": destinationIndex])
+    resetDestinationWhenSelected(destinationIndex)
+  }
+
+  private func cancelLegacySelectionDrag() {
+    guard #unavailable(iOS 26.0), isLegacyDragging else { return }
+    isLegacyDragging = false
+    legacyPreviewIndex = selectedIndex
+    applySelectedIndex()
+    animateLegacySelection(to: selectedIndex)
+  }
+
+  private func legacyIndex(at locationX: CGFloat) -> Int {
+    guard let items = tabBar.items, !items.isEmpty,
+      legacyBackgroundView.bounds.width > 0
+    else { return 0 }
+
+    let fraction = min(max(locationX / legacyBackgroundView.bounds.width, 0), 0.999_999)
+    return min(max(Int(fraction * CGFloat(items.count)), 0), items.count - 1)
   }
 
   private func loadImages(_ uris: [String], itemIndex: Int, generation: UUID) {
@@ -558,13 +739,42 @@ public final class ExpoNativeCompactTabsView: ExpoView, UITabBarDelegate {
     legacySelectionView.layer.cornerRadius = selectionFrame.height / 2
   }
 
-  private func animateLegacySelection(to index: Int) {
+  private func animateLegacySelection(to index: Int, initialVelocity: CGFloat = 0) {
     guard #unavailable(iOS 26.0), !(tabBar.items ?? []).isEmpty else { return }
+
+    let targetFrame = legacySelectionFrame(index: index, compact: isCompact)
+    if UIAccessibility.isReduceMotionEnabled {
+      legacySelectionAnimator?.stopAnimation(true)
+      legacySelectionAnimator = nil
+      legacySelectionView.layer.removeAllAnimations()
+      UIView.performWithoutAnimation {
+        self.legacySelectionView.frame = targetFrame
+        self.legacySelectionView.layer.cornerRadius = targetFrame.height / 2
+      }
+      return
+    }
+
+    let visibleFrame = legacySelectionView.layer.presentation()?.frame
+      ?? legacySelectionView.frame
     legacySelectionAnimator?.stopAnimation(true)
-    let animator = UIViewPropertyAnimator(duration: 0.42, dampingRatio: 0.82) {
-      let frame = self.legacySelectionFrame(index: index, compact: self.isCompact)
-      self.legacySelectionView.frame = frame
-      self.legacySelectionView.layer.cornerRadius = frame.height / 2
+    legacySelectionView.layer.removeAllAnimations()
+    legacySelectionView.frame = visibleFrame
+
+    let animator: UIViewPropertyAnimator
+    let distance = targetFrame.midX - visibleFrame.midX
+    if abs(initialVelocity) > 0.5, abs(distance) > 0.5 {
+      let relativeVelocity = min(max(initialVelocity / distance, -12), 12)
+      let spring = UISpringTimingParameters(
+        dampingRatio: 0.82,
+        initialVelocity: CGVector(dx: relativeVelocity, dy: 0)
+      )
+      animator = UIViewPropertyAnimator(duration: 0.42, timingParameters: spring)
+    } else {
+      animator = UIViewPropertyAnimator(duration: 0.42, dampingRatio: 0.82)
+    }
+    animator.addAnimations {
+      self.legacySelectionView.frame = targetFrame
+      self.legacySelectionView.layer.cornerRadius = targetFrame.height / 2
     }
     legacySelectionAnimator = animator
     animator.addCompletion { [weak self] _ in

@@ -1,4 +1,4 @@
-import { useRef, useSyncExternalStore } from 'react';
+import { useEffect, useRef, useSyncExternalStore } from 'react';
 import type { ScrollView } from 'react-native';
 import {
   runOnJS,
@@ -24,6 +24,8 @@ export function createCompactTabBarController({
 }: CompactTabBarControllerOptions = {}) {
   let compact = false;
   const listeners = new Set<() => void>();
+  const scrollRefs = new Map<string, { current: ScrollView | null }>();
+  const pendingScrolls = new Map<string, boolean>();
 
   function setCompact(next: boolean) {
     if (next === compact) return;
@@ -44,10 +46,47 @@ export function createCompactTabBarController({
     setCompact(false);
   }
 
-  function useCollapsingScroll() {
+  /**
+   * Scrolls a registered tab to its visual top. If the screen has not mounted
+   * yet, the request is retained and applied when its keyed hook registers.
+   */
+  function scrollToTop(key: string, animated = true) {
+    setCompact(false);
+    const scrollView = scrollRefs.get(key)?.current;
+    if (!scrollView) {
+      pendingScrolls.set(key, animated);
+      return false;
+    }
+
+    pendingScrolls.delete(key);
+    scrollView.scrollTo({ y: 0, animated });
+    return true;
+  }
+
+  /** Registers this scroll view for cross-tab reset when a stable key is given. */
+  function useCollapsingScroll(key?: string) {
     const scrollRef = useRef<ScrollView>(null);
     const scrollY = useSharedValue(0);
     const anchor = useSharedValue(0);
+
+    useEffect(() => {
+      if (!key) return;
+      scrollRefs.set(key, scrollRef);
+
+      const pendingAnimated = pendingScrolls.get(key);
+      let frame: number | undefined;
+      if (pendingAnimated !== undefined) {
+        frame = requestAnimationFrame(() => {
+          pendingScrolls.delete(key);
+          scrollRef.current?.scrollTo({ y: 0, animated: pendingAnimated });
+        });
+      }
+
+      return () => {
+        if (frame !== undefined) cancelAnimationFrame(frame);
+        if (scrollRefs.get(key) === scrollRef) scrollRefs.delete(key);
+      };
+    }, [key]);
 
     const onScroll = useAnimatedScrollHandler({
       onBeginDrag: (event) => {
@@ -85,5 +124,5 @@ export function createCompactTabBarController({
     return { scrollRef, scrollY, onScroll };
   }
 
-  return { useCompact, expand, useCollapsingScroll };
+  return { useCompact, expand, scrollToTop, useCollapsingScroll };
 }
