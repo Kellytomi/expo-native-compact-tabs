@@ -1,6 +1,6 @@
 {
   "name": "expo-native-compact-tabs",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A real UIKit tab bar for Expo that keeps every tab visible when compact.",
   "main": "src/index.tsx",
   "types": "src/index.tsx",

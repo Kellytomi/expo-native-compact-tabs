@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.1 - 2026-08-01
 
 - Add an automatic iOS 16.4–18.x floating-pill fallback with a Swift spring
   selection capsule while retaining real UIKit tab items.

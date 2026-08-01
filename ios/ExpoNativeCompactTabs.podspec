@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name           = 'ExpoNativeCompactTabs'
-  s.version        = '0.1.0'
+  s.version        = '0.1.1'
   s.summary        = 'A standalone UIKit tab bar that keeps every tab visible when compact.'
   s.description    = 'Hosts a real UITabBar while React Native owns navigation and compact-state policy.'
   s.license        = { :type => 'MIT' }
