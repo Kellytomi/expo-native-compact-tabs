@@ -1,0 +1,72 @@
+name: Bug report
+description: Report a reproducible problem with the package
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Please search existing issues before continuing.
+        Do not report security vulnerabilities here; use private vulnerability reporting.
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: Describe the actual behavior and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Link a repository or provide the smallest code sample and exact steps that reproduce the issue.
+    validations:
+      required: true
+  - type: dropdown
+    id: rendering-path
+    attributes:
+      label: Rendering path
+      options:
+        - iOS 26+ Liquid Glass
+        - iOS 16.4–18.x solid fallback
+        - Both
+        - Not sure
+    validations:
+      required: true
+  - type: input
+    id: package-version
+    attributes:
+      label: Package version
+      placeholder: 0.1.1
+    validations:
+      required: true
+  - type: input
+    id: expo-version
+    attributes:
+      label: Expo and React Native versions
+      placeholder: Expo 57, React Native 0.86
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: iOS, Xcode, and device versions
+      placeholder: iOS 26.2, Xcode 26, iPhone Air simulator
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs, screenshots, or recordings
+      description: Remove secrets and personal information before posting.
+      render: shell
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues for this problem.
+          required: true
+        - label: I reproduced this in a development or production build, not Expo Go.
+          required: true
