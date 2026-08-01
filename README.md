@@ -11,7 +11,10 @@ the bar is not managed by a `UITabBarController`, your app—not
 
 On iOS 26, this gives you Apple's actual Liquid Glass and water-drop selection
 motion while allowing a compact state that removes labels but keeps every icon.
-Earlier iOS versions receive the native UIKit appearance for that OS.
+On iOS 16.4–18.x, the same component automatically uses a solid floating pill
+and a Swift-animated selection capsule with matching expanded and compact
+geometry. It is deliberately not described as Liquid Glass: that material is
+only available on iOS 26 and newer.
 
 ## Demo
 
@@ -29,6 +32,22 @@ visible. [Watch the higher-quality MP4](https://github.com/Kellytomi/expo-native
 - iOS 16.4 or newer
 - A development build or production build; custom native modules do not run in
   Expo Go
+
+## Platform behavior
+
+No platform check or alternate component is required in your app. The native
+module selects the appropriate rendering path while keeping the same props and
+tab-selection events.
+
+| OS | Surface and selection | Native behavior | Compact state |
+| --- | --- | --- | --- |
+| iOS 26+ | Apple's real Liquid Glass and native water-drop selection capsule | UIKit owns rendering, hit testing, accessibility, and icon animation | Labels disappear, the bar shrinks, and every icon remains visible |
+| iOS 16.4–18.x | Solid floating pill with a Swift-drawn spring selection capsule | Real UIKit tab items retain hit testing, accessibility, and icon animation | The same labels and geometry animate between expanded and compact states |
+| Android | Not supported yet | — | — |
+
+The older-iOS fallback preserves the interaction model and floating pill shape,
+but it cannot reproduce an iOS 26 material that the operating system does not
+provide.
 
 ## Install
 
@@ -190,6 +209,8 @@ safe-area guesses.
   `UITabBarMinimizeBehavior` only controls *when* the system minimizes and its
   built-in compact result keeps only the selected tab.
 - The public API is iOS-only. Do not render the component on Android.
+- iOS 16.4–18.x uses the solid fallback described above. Only iOS 26+ renders
+  Apple's Liquid Glass material and native selection capsule.
 
 ## Why a standalone UITabBar?
 
