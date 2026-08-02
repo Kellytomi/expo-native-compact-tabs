@@ -3,6 +3,12 @@
 A native floating tab bar for Expo apps that keeps every tab visible when it
 becomes compact.
 
+> [!IMPORTANT]
+> **Expo Go is not supported.** This package contains custom Swift and Kotlin
+> code that is not included in the Expo Go app, even when your project's Expo
+> SDK version matches the version supported by Expo Go. Use a development build
+> or production build instead.
+
 `expo-native-compact-tabs` hosts a standalone `UITabBar`, so iOS still owns the
 Liquid Glass material, selection capsule, hit testing, and accessibility. Your
 React Native navigator continues to own routes and screen lifecycle. Because
@@ -68,9 +74,26 @@ platforms do not provide.
 
 ```sh
 npx expo install expo-native-compact-tabs react-native-reanimated
+```
+
+For local development, install Expo's development client and create a native
+build. Add `--device` when targeting a connected physical device:
+
+```sh
+npx expo install expo-dev-client
 npx expo run:ios
-# or
+# npx expo run:ios --device
+
 npx expo run:android
+# npx expo run:android --device
+```
+
+The `run` command builds, installs, and launches the development build, then
+starts Metro automatically. On later sessions, when the native dependencies
+have not changed, start Metro with:
+
+```sh
+npx expo start --dev-client
 ```
 
 If you are not using Expo's installer, the equivalent npm command is
