@@ -19,7 +19,13 @@ class ExpoNativeCompactTabItem : Record {
   var imageUri: String = ""
 
   @Field
+  var imageScale: Double = 0.0
+
+  @Field
   var animationFrameUris: List<String> = emptyList()
+
+  @Field
+  var animationFrameScales: List<Double> = emptyList()
 
   @Field
   var accessibilityLabel: String? = null

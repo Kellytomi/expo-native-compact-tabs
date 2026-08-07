@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Preserve React Native image scale metadata when loading iOS tab icons so
+  embedded and downloaded Expo Updates assets render at the same point size.
+
 ## 0.2.0 - 2026-08-01
 
 - Add a native Android floating-pill implementation with matching expanded and
