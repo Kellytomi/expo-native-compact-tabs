@@ -44,7 +44,9 @@ type NativeItem = {
   key: string;
   label: string;
   imageUri: string;
+  imageScale: number;
   animationFrameUris: string[];
+  animationFrameScales: number[];
   accessibilityLabel?: string;
 };
 
@@ -58,14 +60,25 @@ const NativeCompactTabBarView = requireNativeViewManager<NativeProps>(
   'ExpoNativeCompactTabsView'
 );
 
-function uriFor(source: ImageSourcePropType, itemKey: string): string {
+type ResolvedImage = {
+  uri: string;
+  scale: number;
+};
+
+function resolveImage(
+  source: ImageSourcePropType,
+  itemKey: string
+): ResolvedImage {
   const resolved = Image.resolveAssetSource(source);
   if (!resolved?.uri) {
     throw new Error(
       `expo-native-compact-tabs could not resolve the icon for item "${itemKey}".`
     );
   }
-  return resolved.uri;
+  return {
+    uri: resolved.uri,
+    scale: resolved.scale ?? 0,
+  };
 }
 
 /**
@@ -80,15 +93,22 @@ export function NativeCompactTabBar({
 }: NativeCompactTabBarProps) {
   const nativeItems = useMemo(
     () =>
-      items.map((item) => ({
-        key: item.key,
-        label: item.label,
-        imageUri: uriFor(item.icon, item.key),
-        animationFrameUris: (item.animationFrames ?? []).map((frame) =>
-          uriFor(frame, item.key)
-        ),
-        accessibilityLabel: item.accessibilityLabel,
-      })),
+      items.map((item) => {
+        const image = resolveImage(item.icon, item.key);
+        const animationFrames = (item.animationFrames ?? []).map((frame) =>
+          resolveImage(frame, item.key)
+        );
+
+        return {
+          key: item.key,
+          label: item.label,
+          imageUri: image.uri,
+          imageScale: image.scale,
+          animationFrameUris: animationFrames.map((frame) => frame.uri),
+          animationFrameScales: animationFrames.map((frame) => frame.scale),
+          accessibilityLabel: item.accessibilityLabel,
+        };
+      }),
     [items]
   );
 

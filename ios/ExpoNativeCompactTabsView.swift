@@ -133,7 +133,9 @@ public final class ExpoNativeCompactTabsView: ExpoView, UITabBarDelegate {
       zip(definitions, itemDefinitions).contains { next, current in
         next.key != current.key || next.label != current.label ||
           next.imageUri != current.imageUri ||
+          next.imageScale != current.imageScale ||
           next.animationFrameUris != current.animationFrameUris ||
+          next.animationFrameScales != current.animationFrameScales ||
           next.accessibilityLabel != current.accessibilityLabel
       }
 
@@ -162,7 +164,10 @@ public final class ExpoNativeCompactTabsView: ExpoView, UITabBarDelegate {
       let uris = definition.animationFrameUris.isEmpty
         ? [definition.imageUri]
         : definition.animationFrameUris
-      loadImages(uris, itemIndex: index, generation: generation)
+      let scales = definition.animationFrameUris.isEmpty
+        ? [definition.imageScale]
+        : definition.animationFrameScales
+      loadImages(uris, scales: scales, itemIndex: index, generation: generation)
     }
 
     applySelectedIndex()
@@ -385,13 +390,19 @@ public final class ExpoNativeCompactTabsView: ExpoView, UITabBarDelegate {
     return min(max(Int(fraction * CGFloat(items.count)), 0), items.count - 1)
   }
 
-  private func loadImages(_ uris: [String], itemIndex: Int, generation: UUID) {
+  private func loadImages(
+    _ uris: [String],
+    scales: [Double],
+    itemIndex: Int,
+    generation: UUID
+  ) {
     let group = DispatchGroup()
     var loaded = Array<UIImage?>(repeating: nil, count: uris.count)
 
     for (frameIndex, uri) in uris.enumerated() {
       group.enter()
-      loadImage(uri) { image in
+      let scale = scales.indices.contains(frameIndex) ? scales[frameIndex] : 0
+      loadImage(uri, scale: scale) { image in
         loaded[frameIndex] = image?.withRenderingMode(.alwaysTemplate)
         group.leave()
       }
@@ -409,20 +420,29 @@ public final class ExpoNativeCompactTabsView: ExpoView, UITabBarDelegate {
     }
   }
 
-  private func loadImage(_ uri: String, completion: @escaping (UIImage?) -> Void) {
-    let cacheKey = uri as NSString
-    if let cached = Self.imageCache.object(forKey: cacheKey) {
-      completion(cached)
-      return
-    }
-
+  private func loadImage(
+    _ uri: String,
+    scale: Double,
+    completion: @escaping (UIImage?) -> Void
+  ) {
     guard let url = URL(string: uri) else {
       completion(nil)
       return
     }
 
+    let resolvedScale = scale > 0
+      ? CGFloat(scale)
+      : (url.isFileURL ? 1 : UIScreen.main.scale)
+    let cacheKey = "\(uri)#scale=\(resolvedScale)" as NSString
+    if let cached = Self.imageCache.object(forKey: cacheKey) {
+      completion(cached)
+      return
+    }
+
     if url.isFileURL {
-      let image = UIImage(contentsOfFile: url.path)
+      let image = (try? Data(contentsOf: url)).flatMap {
+        UIImage(data: $0, scale: resolvedScale)
+      }
       if let image { Self.imageCache.setObject(image, forKey: cacheKey) }
       completion(image)
       return
@@ -430,7 +450,7 @@ public final class ExpoNativeCompactTabsView: ExpoView, UITabBarDelegate {
 
     URLSession.shared.dataTask(with: url) { data, _, _ in
       let image = data.flatMap {
-        UIImage(data: $0, scale: UIScreen.main.scale)
+        UIImage(data: $0, scale: resolvedScale)
       }
       if let image { Self.imageCache.setObject(image, forKey: cacheKey) }
       DispatchQueue.main.async { completion(image) }

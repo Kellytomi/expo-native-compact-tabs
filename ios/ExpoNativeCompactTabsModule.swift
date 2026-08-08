@@ -4,7 +4,9 @@ struct ExpoNativeCompactTabItem: Record {
   @Field var key: String = ""
   @Field var label: String = ""
   @Field var imageUri: String = ""
+  @Field var imageScale: Double = 0
   @Field var animationFrameUris: [String] = []
+  @Field var animationFrameScales: [Double] = []
   @Field var accessibilityLabel: String?
 }
 
