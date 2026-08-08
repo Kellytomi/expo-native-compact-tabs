@@ -1,6 +1,6 @@
 {
   "name": "expo-native-compact-tabs",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "A native floating tab bar for Expo that keeps every tab visible when compact.",
   "main": "src/index.tsx",
   "types": "src/index.tsx",
