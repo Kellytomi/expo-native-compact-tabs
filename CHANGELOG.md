@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.1 - 2026-08-08
 
 - Preserve React Native image scale metadata when loading iOS tab icons so
   embedded and downloaded Expo Updates assets render at the same point size.
