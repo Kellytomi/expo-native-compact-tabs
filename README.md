@@ -1,5 +1,7 @@
 # expo-native-compact-tabs
 
+[![npm downloads](https://img.shields.io/npm/dt/expo-native-compact-tabs?style=flat-square&label=downloads&color=2ea44f)](https://www.npmjs.com/package/expo-native-compact-tabs)
+
 A native floating tab bar for Expo apps that keeps every tab visible when it
 becomes compact.
 
